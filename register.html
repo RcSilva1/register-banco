@@ -1,0 +1,218 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Registro</title>
+
+    <style>
+        :root {
+            --bg: #0f1724;
+            --card: #0b1220;
+            --accent: #6EE7B7;
+            --muted: #94a3b8;
+            --white: #e6eef7;
+            --danger: #ff6b6b;
+            font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            background: linear-gradient(180deg,#071026 0%, #0f1724 100%);
+            color: var(--white)
+        }
+
+        .wrap {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 28px
+        }
+
+        .card {
+            width: 920px;
+            max-width: 95vw;
+            background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+            border-radius: 14px;
+            padding: 18px;
+            box-shadow: 0 8px 30px rgba(2,6,23,0.6);
+            border: 1px solid rgba(255,255,255,0.03);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .quad {
+            background: var(--card);
+            border-radius: 10px;
+            padding: 16px;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border: 1px solid rgba(255,255,255,0.02);
+        }
+
+            .quad h3 {
+                margin: 0 0 8px;
+                font-size: 14px;
+                color: var(--accent)
+            }
+
+        .input {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.03);
+            color: var(--white);
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+        }
+
+            .input::placeholder {
+                color: rgba(230,238,247,0.35)
+            }
+
+        .actions {
+            grid-column: 1/-1;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            justify-content: flex-end;
+            margin-top: 8px
+        }
+
+        .btn {
+            background: linear-gradient(90deg,var(--accent),#34d399);
+            color: #012018;
+            padding: 10px 16px;
+            border-radius: 10px;
+            border: 0;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 6px 18px rgba(110,231,183,0.12);
+        }
+
+            .btn:disabled {
+                opacity: 0.6;
+                cursor: not-allowed
+            }
+
+        .msg {
+            color: var(--muted);
+            font-size: 14px
+        }
+
+        .error {
+            color: var(--danger);
+            font-weight: 600
+        }
+
+        @media(max-width:720px) {
+            .card {
+                grid-template-columns: 1fr;
+                padding: 14px
+            }
+
+            .actions {
+                flex-direction: column-reverse;
+                align-items: stretch
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="card" role="main" aria-labelledby="title">
+            <div style="grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+                <h2 id="title" style="margin:0;font-size:18px">Registro</h2>
+                <div class="small" id="status">offline</div>
+            </div>
+
+            <div class="quad">
+                <h3>Nome completo</h3>
+                <input id="input-name" class="input" type="text" placeholder="João da Silva">
+            </div>
+
+            <div class="quad">
+                <h3>CPF</h3>
+                <input id="input-cpf" class="input" type="text" placeholder="000.000.000-00">
+            </div>
+
+            <div class="quad">
+                <h3>Email</h3>
+                <input id="input-email" class="input" type="email" placeholder="seu@exemplo.com">
+            </div>
+
+            <div class="quad">
+                <h3>Senha</h3>
+                <input id="input-senha" class="input" type="password" placeholder="••••••••">
+            </div>
+
+            <div class="actions">
+                <div id="feedback" class="msg"></div>
+                <button id="btn-register" class="btn">Cadastrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBZ2qO0K626TF1Dt2AdDfHtIYvg9n-G1MI",
+  authDomain: "banco-4855c.firebaseapp.com",
+  projectId: "banco-4855c",
+  storageBucket: "banco-4855c.firebasestorage.app",
+  messagingSenderId: "119137966073",
+  appId: "1:119137966073:web:975720050f403475844f28"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+document.getElementById('status').textContent='Firebase ready';
+
+const emailEl = document.getElementById('input-email');
+const senhaEl = document.getElementById('input-senha');
+const btn = document.getElementById('btn-register');
+const feedback = document.getElementById('feedback');
+
+function setFeedback(text,isError=false){
+  feedback.textContent=text;
+  feedback.className=isError?'msg error':'msg';
+}
+
+function validarEmail(email){
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((email||'').trim());
+}
+
+btn.addEventListener('click', async()=>{
+  const email = (emailEl.value||'').trim();
+  const senha = (senhaEl.value||'').trim();
+
+  if(!email || !senha){ setFeedback('Preencha e-mail e senha.',true); return;}
+  if(!validarEmail(email)){ setFeedback('Digite um e-mail válido.',true); return;}
+
+  setFeedback('Criando usuário...',false);
+  btn.disabled=true;
+
+  try{
+    const userCredential = await createUserWithEmailAndPassword(auth,email,senha);
+    console.log("Usuário criado:",userCredential.user);
+    setFeedback('✅ Usuário criado com sucesso! Redirecionando...',false);
+    setTimeout(()=>window.location.href='./login.html',1000);
+  }catch(err){
+    console.error(err);
+    if(err.code==='auth/email-already-in-use'){ setFeedback('E-mail já cadastrado.',true);}
+    else if(err.code==='auth/weak-password'){ setFeedback('Senha muito fraca (mínimo 6 caracteres).',true);}
+    else{ setFeedback('Erro: '+(err.message||'Falha no cadastro'),true);}
+  }finally{ btn.disabled=false;}
+});
+
+senhaEl.addEventListener('keydown',(e)=>{if(e.key==='Enter') btn.click();});
+    </script>
+</body>
+</html>
