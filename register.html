@@ -110,6 +110,17 @@
             font-weight: 600
         }
 
+        .link-login {
+            grid-column: 1/-1;
+            text-align: center;
+            margin-top: 6px;
+        }
+
+        a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
         @media(max-width:720px) {
             .card {
                 grid-template-columns: 1fr;
@@ -131,21 +142,25 @@
                 <div class="small" id="status">offline</div>
             </div>
 
+            <!-- Nome completo (visual) -->
             <div class="quad">
                 <h3>Nome completo</h3>
                 <input id="input-name" class="input" type="text" placeholder="João da Silva">
             </div>
 
+            <!-- CPF (visual) -->
             <div class="quad">
                 <h3>CPF</h3>
                 <input id="input-cpf" class="input" type="text" placeholder="000.000.000-00">
             </div>
 
+            <!-- Email (funcional) -->
             <div class="quad">
                 <h3>Email</h3>
                 <input id="input-email" class="input" type="email" placeholder="seu@exemplo.com">
             </div>
 
+            <!-- Senha (funcional) -->
             <div class="quad">
                 <h3>Senha</h3>
                 <input id="input-senha" class="input" type="password" placeholder="••••••••">
@@ -155,64 +170,68 @@
                 <div id="feedback" class="msg"></div>
                 <button id="btn-register" class="btn">Cadastrar</button>
             </div>
+
+            <div class="link-login">
+                <p>Já tem conta? <a href="login.html">Entrar</a></p>
+            </div>
         </div>
     </div>
 
     <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBZ2qO0K626TF1Dt2AdDfHtIYvg9n-G1MI",
-  authDomain: "banco-4855c.firebaseapp.com",
-  projectId: "banco-4855c",
-  storageBucket: "banco-4855c.firebasestorage.app",
-  messagingSenderId: "119137966073",
-  appId: "1:119137966073:web:975720050f403475844f28"
-};
+        const firebaseConfig = {
+            apiKey: "AIzaSyBZ2qO0K626TF1Dt2AdDfHtIYvg9n-G1MI",
+            authDomain: "banco-4855c.firebaseapp.com",
+            projectId: "banco-4855c",
+            storageBucket: "banco-4855c.firebasestorage.app",
+            messagingSenderId: "119137966073",
+            appId: "1:119137966073:web:975720050f403475844f28"
+        };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-document.getElementById('status').textContent='Firebase ready';
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        document.getElementById('status').textContent = 'Firebase ready';
 
-const emailEl = document.getElementById('input-email');
-const senhaEl = document.getElementById('input-senha');
-const btn = document.getElementById('btn-register');
-const feedback = document.getElementById('feedback');
+        const emailEl = document.getElementById('input-email');
+        const senhaEl = document.getElementById('input-senha');
+        const btn = document.getElementById('btn-register');
+        const feedback = document.getElementById('feedback');
 
-function setFeedback(text,isError=false){
-  feedback.textContent=text;
-  feedback.className=isError?'msg error':'msg';
-}
+        function setFeedback(text, isError = false) {
+            feedback.textContent = text;
+            feedback.className = isError ? 'msg error' : 'msg';
+        }
 
-function validarEmail(email){
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((email||'').trim());
-}
+        function validarEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((email || '').trim());
+        }
 
-btn.addEventListener('click', async()=>{
-  const email = (emailEl.value||'').trim();
-  const senha = (senhaEl.value||'').trim();
+        btn.addEventListener('click', async () => {
+            const email = (emailEl.value || '').trim();
+            const senha = (senhaEl.value || '').trim();
 
-  if(!email || !senha){ setFeedback('Preencha e-mail e senha.',true); return;}
-  if(!validarEmail(email)){ setFeedback('Digite um e-mail válido.',true); return;}
+            if (!email || !senha) { setFeedback('Preencha e-mail e senha.', true); return; }
+            if (!validarEmail(email)) { setFeedback('Digite um e-mail válido.', true); return; }
 
-  setFeedback('Criando usuário...',false);
-  btn.disabled=true;
+            setFeedback('Criando usuário...', false);
+            btn.disabled = true;
 
-  try{
-    const userCredential = await createUserWithEmailAndPassword(auth,email,senha);
-    console.log("Usuário criado:",userCredential.user);
-    setFeedback('✅ Usuário criado com sucesso! Redirecionando...',false);
-    setTimeout(()=>window.location.href='./login.html',1000);
-  }catch(err){
-    console.error(err);
-    if(err.code==='auth/email-already-in-use'){ setFeedback('E-mail já cadastrado.',true);}
-    else if(err.code==='auth/weak-password'){ setFeedback('Senha muito fraca (mínimo 6 caracteres).',true);}
-    else{ setFeedback('Erro: '+(err.message||'Falha no cadastro'),true);}
-  }finally{ btn.disabled=false;}
-});
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
+                console.log("Usuário criado:", userCredential.user);
+                setFeedback('✅ Usuário criado com sucesso! Redirecionando...', false);
+                setTimeout(() => window.location.href = './login.html', 1000);
+            } catch (err) {
+                console.error(err);
+                if (err.code === 'auth/email-already-in-use') { setFeedback('E-mail já cadastrado.', true); }
+                else if (err.code === 'auth/weak-password') { setFeedback('Senha muito fraca (mínimo 6 caracteres).', true); }
+                else { setFeedback('Erro: ' + (err.message || 'Falha no cadastro'), true); }
+            } finally { btn.disabled = false; }
+        });
 
-senhaEl.addEventListener('keydown',(e)=>{if(e.key==='Enter') btn.click();});
+        senhaEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') btn.click(); });
     </script>
 </body>
 </html>
